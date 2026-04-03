@@ -847,6 +847,79 @@ function initChat() {
         input.style.height = 'auto';
         input.style.height = input.scrollHeight + 'px';
     });
+
+    // Make Draggable
+    initDraggable(widget);
+}
+
+function initDraggable(el) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    const dragHandle = el.querySelector('.chat-header');
+    const handle = dragHandle || el;
+
+    handle.onmousedown = dragStart;
+    handle.ontouchstart = (e) => dragStart(e, true);
+
+    function dragStart(e, isTouch = false) {
+        // Don't drag if clicking buttons
+        if (e.target.closest('button')) return;
+
+        const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+        const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+
+        pos3 = clientX;
+        pos4 = clientY;
+
+        if (isTouch) {
+            document.ontouchend = dragEnd;
+            document.ontouchmove = (e) => dragMove(e, true);
+        } else {
+            document.onmouseup = dragEnd;
+            document.onmousemove = dragMove;
+        }
+
+        const rect = el.getBoundingClientRect();
+        el.style.bottom = 'auto';
+        el.style.right = 'auto';
+        el.style.top = rect.top + 'px';
+        el.style.left = rect.left + 'px';
+        el.style.margin = '0';
+        el.style.transition = 'none';
+        el.style.maxWidth = 'none'; // Prevent width issues while dragging
+    }
+
+    function dragMove(e, isTouch = false) {
+        const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+        const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+
+        pos1 = pos3 - clientX;
+        pos2 = pos4 - clientY;
+        pos3 = clientX;
+        pos4 = clientY;
+
+        let newTop = el.offsetTop - pos2;
+        let newLeft = el.offsetLeft - pos1;
+
+        const pad = 10;
+        const maxLeft = window.innerWidth - el.offsetWidth - pad;
+        const maxTop = window.innerHeight - el.offsetHeight - pad;
+
+        if (newLeft < pad) newLeft = pad;
+        if (newTop < pad) newTop = pad;
+        if (newLeft > maxLeft) newLeft = maxLeft;
+        if (newTop > maxTop) newTop = maxTop;
+
+        el.style.top = newTop + "px";
+        el.style.left = newLeft + "px";
+    }
+
+    function dragEnd() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+        document.ontouchend = null;
+        document.ontouchmove = null;
+        el.style.transition = '';
+    }
 }
 
 function addChatMessage(role, text) {

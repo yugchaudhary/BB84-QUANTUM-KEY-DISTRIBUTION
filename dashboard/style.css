@@ -1197,6 +1197,12 @@ table.photon-table tr:hover td {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor: grab;
+    user-select: none;
+}
+
+.chat-header:active {
+    cursor: grabbing;
 }
 
 .chat-header-info {
