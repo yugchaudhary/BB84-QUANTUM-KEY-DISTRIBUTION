@@ -20,7 +20,10 @@
 
     <!-- ══════════ HEADER ══════════ -->
     <header class="header">
-        <h1>🔐 BB84 Quantum Key Distribution</h1>
+        <div class="header-row">
+            <h1>🔐 BB84 Quantum Key Distribution</h1>
+            <button id="themeToggle" class="theme-toggle" title="Toggle Light/Dark Mode">🌙</button>
+        </div>
         <p class="subtitle">Interactive Simulation — Engineering Physics Project</p>
     </header>
 
@@ -83,6 +86,7 @@
                     style="width:100px;padding:8px 12px;background:var(--bg-glass);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem">
             </div>
             <button id="mcBtn" class="btn btn-secondary">📊 Run Monte-Carlo</button>
+            <button id="exportBtn" class="btn btn-export" title="Export results as CSV" disabled>📥 Export CSV</button>
         </div>
 
         <!-- ══════════ MESSAGE INPUT + ENCRYPT ══════════ -->
@@ -189,20 +193,7 @@
 
         </div><!-- /resultsSection -->
 
-        <!-- ══════════ SMART EXPLAINER ══════════ -->
-        <div class="card" style="margin-top:20px">
-            <div class="card-title"><span class="icon">🧠</span> Smart Physics Explainer</div>
-            <div id="dynamicExplainer" class="explainer-dynamic">
-                <p style="color:var(--text-dim)">Run a simulation or encrypt a message to see a dynamic physics
-                    explanation tailored to your results.</p>
-            </div>
-            <div class="card-title" style="margin-top:8px"><span class="icon">❓</span> Ask a Question</div>
-            <div id="qaList" class="qa-list">
-                <div style="color:var(--text-dim);font-size:0.85rem;padding:8px">
-                    Questions will appear here after running a simulation.
-                </div>
-            </div>
-        </div>
+
 
         <!-- ══════════ MONTE CARLO SECTION ══════════ -->
         <div id="mcSection" style="margin-top:20px">

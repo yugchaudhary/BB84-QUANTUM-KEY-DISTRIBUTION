@@ -27,6 +27,55 @@
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
 
+/* ── Light Theme ── */
+[data-theme="light"] {
+    --bg-primary: #f0f4f8;
+    --bg-secondary: #e2e8f0;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --bg-glass: rgba(0, 0, 0, 0.03);
+    --border: rgba(0, 0, 0, 0.1);
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-dim: #94a3b8;
+    --accent-blue: #2563eb;
+    --accent-cyan: #0891b2;
+    --accent-purple: #7c3aed;
+    --accent-green: #059669;
+    --accent-red: #dc2626;
+    --accent-amber: #d97706;
+    --accent-pink: #db2777;
+    --glow-blue: 0 0 12px rgba(37, 99, 235, 0.15);
+    --glow-cyan: 0 0 12px rgba(8, 145, 178, 0.15);
+    --glow-purple: 0 0 12px rgba(124, 58, 237, 0.15);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .bg-gradient {
+    background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(6, 182, 212, 0.04) 0%, transparent 60%);
+}
+
+[data-theme="light"] .card:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .card::before {
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.02), transparent);
+}
+
+[data-theme="light"] .photon-table thead {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .photon-table tr:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -69,6 +118,36 @@ body {
     padding: 40px 20px 20px;
 }
 
+.header-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+}
+
+.theme-toggle {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: var(--glow-purple);
+    border-color: var(--accent-purple);
+}
+
 .header h1 {
     font-size: 2.4rem;
     font-weight: 800;
@@ -77,6 +156,12 @@ body {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.5px;
+}
+
+[data-theme="light"] .header h1 {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+    -webkit-background-clip: text;
+    background-clip: text;
 }
 
 .header .subtitle {
@@ -285,6 +370,25 @@ body {
 
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-export {
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+    color: #fff;
+    border: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+    transition: all 0.3s ease;
+}
+
+.btn-export:not(:disabled) {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.btn-export:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
 }
 
 /* Stat cards */

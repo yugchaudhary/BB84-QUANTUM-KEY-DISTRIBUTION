@@ -452,9 +452,8 @@ async function runSingle() {
             <div>Compression: <strong>${(result.compressionRatio * 100).toFixed(1)}%</strong></div>
         </div>`;
 
-    // Update explainer
-    $('dynamicExplainer').innerHTML = generateExplainer(result, null, null, eveActive);
-    renderQA(result, eveActive);
+    // Enable export
+    $('exportBtn').disabled = false;
 
     $('resultsSection').style.display = 'block';
     $('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -528,9 +527,8 @@ async function runEncrypt() {
 
     $('otpSection').style.display = 'block';
 
-    // Update explainer with encryption context
-    $('dynamicExplainer').innerHTML = generateExplainer(result, plaintext, bobDecrypted, eveActive);
-    renderQA(result, eveActive);
+    // Enable export
+    $('exportBtn').disabled = false;
 
     $('paInfo').innerHTML = `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem">
@@ -605,10 +603,6 @@ function runDualScenario() {
         </div>`;
 
     $('dualSection').style.display = 'block';
-
-    // Update explainer for Eve scenario
-    $('dynamicExplainer').innerHTML = generateExplainer(eveR, plaintext, eveDec.text, true);
-    renderQA(eveR, true);
 
     $('dualSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -717,11 +711,74 @@ function renderHistogram(cleanQbers, eveQbers) {
     });
 }
 
-// ── Init ───────────────────────────────────────────────────────────────────
+// ── Init ───────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     initControls();
     initChat();
+    initTheme();
+    initExport();
 });
+
+// ── Theme Toggle ───────────────────────────────────────────────────────────────
+function initTheme() {
+    const btn = $('themeToggle');
+    const saved = localStorage.getItem('bb84_theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'light');
+    applyTheme(theme);
+
+    btn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        localStorage.setItem('bb84_theme', next);
+    });
+}
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn = $('themeToggle');
+    btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+}
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+function initExport() {
+    $('exportBtn').addEventListener('click', exportCSV);
+}
+
+function exportCSV() {
+    if (!lastResult) return;
+    const r = lastResult;
+    const n = r.alice.bits.length;
+
+    let csv = 'BB84 QKD Simulation Results\n';
+    csv += `Photons,${n}\n`;
+    csv += `Eve Active,${r.eve.active}\n`;
+    csv += `QBER,${(r.qber * 100).toFixed(2)}%\n`;
+    csv += `Sifted Key Length,${r.siftedLen}\n`;
+    csv += `Bit Errors,${r.sifted.errors}\n`;
+    csv += `Final Key Length,${r.finalKeyLen}\n`;
+    csv += `Compression Ratio,${(r.compressionRatio * 100).toFixed(1)}%\n`;
+    csv += '\n';
+    csv += '#,Alice Bit,Alice Basis,Eve Basis,Eve Bit,Bob Basis,Bob Bit,Basis Match,Bit Match\n';
+
+    for (let i = 0; i < n; i++) {
+        const basisMatch = r.alice.bases[i] === r.bob.bases[i] ? 'Yes' : 'No';
+        const bitMatch = r.alice.bits[i] === r.bob.bits[i] ? 'Yes' : 'No';
+        const eveBasis = r.eve.active ? BASIS_SYM[r.eve.bases[i]] : '-';
+        const eveBit = r.eve.active ? r.eve.bits[i] : '-';
+        csv += `${i + 1},${r.alice.bits[i]},${BASIS_SYM[r.alice.bases[i]]},${eveBasis},${eveBit},${BASIS_SYM[r.bob.bases[i]]},${r.bob.bits[i]},${basisMatch},${bitMatch}\n`;
+    }
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bb84_simulation_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AI CHAT CONTROLLER — Gemini API Integration
@@ -862,8 +919,8 @@ async function callGemini(userPrompt, apiKey) {
     to answer the user's specific doubts. Keep responses concise and formatted with markdown (bold, code blocks).
     If a user asks about the results on their screen, use the Context provided.`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    // Version: 1.0.3 - Fixed v1 vs v1beta model support
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    // Version: 1.0.4 - Switched to gemini-2.5-flash (current stable model)
 
     const payload = {
         contents: [{
