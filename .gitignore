@@ -1,0 +1,12 @@
+# Build artifacts
+bb84_sim
+*.o
+
+# Data files
+*.csv
+
+# OS specific files
+.DS_Store
+
+# Misc
+.gemini/
