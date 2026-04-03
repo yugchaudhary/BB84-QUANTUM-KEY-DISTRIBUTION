@@ -805,7 +805,7 @@ async function callGemini(userPrompt, apiKey) {
     to answer the user's specific doubts. Keep responses concise and formatted with markdown (bold, code blocks).
     If a user asks about the results on their screen, use the Context provided.`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const payload = {
         contents: [{
