@@ -6,12 +6,16 @@ This project implements the **BB84 protocol**, including an interactive web-base
 
 ### 1. Interactive Dashboard (HTML/JS)
 A visual, dark-themed dashboard that allows you to:
+-   **Quantum AI Assistant:** A real AI chatbot (powered by Google Gemini) that explains physics concepts and analyzes your current simulation results.
 -   **Simulate the BB84 Flow:** See Alice and Bob exchanging polarized photons.
 -   **Toggle Eve (Eavesdropper):** Instantly visualize how interception affects the Quantum Bit Error Rate (QBER).
 -   **One-Time Pad Encryption:** Use the generated quantum key to encrypt and decrypt text.
 -   **Statistical Analysis:** Run Monte-Carlo trials and view the error distribution.
 
 **To run:** Open `dashboard/index.html` in your web browser.
+
+> [!TIP]
+> **To enable the AI Chatbot:** Click the "Set Gemini API Key" link in the chat window and paste your free API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
 
 ### 2. Simulation Engine (C CLI)
 A command-line tool for large-scale simulations and detailed statistical reports.

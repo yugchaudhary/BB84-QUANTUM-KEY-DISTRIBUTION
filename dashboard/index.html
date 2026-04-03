@@ -210,6 +210,65 @@
 
     </div><!-- /container -->
 
+    <!-- ══════════ AI CHAT WIDGET ══════════ -->
+    <div id="chatWidget" class="chat-widget">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <span class="icon">🤖</span>
+                <div>
+                    <div class="chat-header-title">Quantum AI Assistant</div>
+                    <div class="chat-header-status"><span class="status-dot"></span> Online</div>
+                </div>
+            </div>
+            <button id="chatToggle" class="chat-close">×</button>
+        </div>
+        <div id="chatMessages" class="chat-messages">
+            <div class="message ai">
+                Hi! I'm your Quantum AI assistant. Ask me anything about BB84, QBER, or the physics behind this
+                simulation!
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <textarea id="chatInput" placeholder="Ask a physics question..." rows="1"></textarea>
+            <button id="chatSend" class="chat-send-btn">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                    <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+            </button>
+        </div>
+        <div class="chat-footer">
+            <button id="setApiKeyBtn" class="api-key-link">🔑 Set Gemini API Key</button>
+        </div>
+    </div>
+
+    <button id="chatFab" class="chat-fab">
+        <span class="icon">💬</span>
+        <span class="fab-text">Ask AI</span>
+    </button>
+
+    <!-- ══════════ API KEY MODAL ══════════ -->
+    <div id="apiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Set Google Gemini API Key</h3>
+                <button id="closeModal" class="modal-close">×</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+                To use the real AI chatbot, you need a Google Gemini API key. It's free!
+                You can get one at <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                    style="color: var(--accent-cyan); text-decoration: none;">Google AI Studio</a>.
+            </p>
+            <input type="password" id="apiKeyInput" class="message-input" placeholder="Paste your API key here...">
+            <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="saveApiKey" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.8rem;">Save
+                    Key</button>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 12px; text-align: center;">
+                🔒 Your key is saved locally in your browser and is never sent to our servers.
+            </p>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 

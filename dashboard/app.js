@@ -661,4 +661,173 @@ function renderHistogram(cleanQbers, eveQbers) {
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', initControls);
+document.addEventListener('DOMContentLoaded', () => {
+    initControls();
+    initChat();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AI CHAT CONTROLLER — Gemini API Integration
+// ═══════════════════════════════════════════════════════════════════════════
+
+function initChat() {
+    const fab = $('chatFab');
+    const widget = $('chatWidget');
+    const toggle = $('chatToggle');
+    const input = $('chatInput');
+    const sendBtn = $('chatSend');
+    const setKeyBtn = $('setApiKeyBtn');
+    const apiModal = $('apiModal');
+    const closeModal = $('closeModal');
+    const saveKeyBtn = $('saveApiKey');
+    const keyInput = $('apiKeyInput');
+
+    // Toggle Chat
+    fab.addEventListener('click', () => {
+        widget.classList.add('active');
+        fab.style.display = 'none';
+        input.focus();
+    });
+
+    toggle.addEventListener('click', () => {
+        widget.classList.remove('active');
+        fab.style.display = 'flex';
+    });
+
+    // Modal
+    setKeyBtn.addEventListener('click', () => {
+        keyInput.value = localStorage.getItem('gemini_api_key') || '';
+        apiModal.classList.add('active');
+    });
+
+    closeModal.addEventListener('click', () => apiModal.classList.remove('active'));
+
+    saveKeyBtn.addEventListener('click', () => {
+        const key = keyInput.value.trim();
+        if (key) {
+            localStorage.setItem('gemini_api_key', key);
+            apiModal.classList.remove('active');
+            addChatMessage('ai', '✅ API Key saved! I\'m ready to help.');
+        }
+    });
+
+    // Send Message
+    const handleSend = () => {
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        input.style.height = 'auto';
+        processUserMessage(text);
+    };
+
+    sendBtn.addEventListener('click', handleSend);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    });
+
+    // Auto-resize textarea
+    input.addEventListener('input', () => {
+        input.style.height = 'auto';
+        input.style.height = input.scrollHeight + 'px';
+    });
+}
+
+function addChatMessage(role, text) {
+    const container = $('chatMessages');
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+
+    // Simple markdown-ish rendering for bold and code
+    let html = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+
+    div.innerHTML = html;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+}
+
+function addLoadingIndicator() {
+    const container = $('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'message ai loading';
+    div.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+}
+
+async function processUserMessage(text) {
+    addChatMessage('user', text);
+
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+        setTimeout(() => {
+            addChatMessage('ai', '⚠️ No API Key found. Please click "Set Gemini API Key" at the bottom to enable the real AI.');
+        }, 500);
+        return;
+    }
+
+    const loading = addLoadingIndicator();
+
+    try {
+        const response = await callGemini(text, apiKey);
+        loading.remove();
+        addChatMessage('ai', response);
+    } catch (err) {
+        loading.remove();
+        addChatMessage('ai', '❌ Error: ' + err.message);
+    }
+}
+
+async function callGemini(userPrompt, apiKey) {
+    // Build context string from current simulation state
+    let context = "Context: You are a physics expert assistant integrated into a BB84 QKD interactive simulator.\n";
+    if (lastResult) {
+        context += `Current Simulation State:\n`;
+        context += `- Photons: ${lastResult.alice.bits.length}\n`;
+        context += `- Eve Active: ${lastResult.eve.active}\n`;
+        context += `- Sifted Key Length: ${lastResult.siftedLen}\n`;
+        context += `- QBER: ${(lastResult.qber * 100).toFixed(2)}%\n`;
+        context += `- Errors Found: ${lastResult.sifted.errors}\n`;
+        context += `- Final Key Length: ${lastResult.finalKeyLen}\n`;
+    } else {
+        context += "No simulation has been run yet.\n";
+    }
+
+    const systemPrompt = `You are a helpful, brilliant Quantum Cryptography expert. 
+    Explain concepts simply but accurately. Use the context provided about the current simulation state 
+    to answer the user's specific doubts. Keep responses concise and formatted with markdown (bold, code blocks).
+    If a user asks about the results on their screen, use the Context provided.`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const payload = {
+        contents: [{
+            parts: [{
+                text: `${systemPrompt}\n\n${context}\n\nUser Question: ${userPrompt}`
+            }]
+        }],
+        generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 1024,
+        }
+    };
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates[0].content.parts[0].text;
+}
