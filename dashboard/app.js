@@ -269,16 +269,47 @@ function initControls() {
     $('mcBtn').addEventListener('click', runMC);
 }
 
-// ── Animate Flow ──────────────────────────────────────────────────────────
-function animateFlow(eveActive) {
+// ── Animate Simulation ──────────────────────────────────────────────────
+async function animateSimulation(eveActive) {
     const nodes = ['flowAlice', 'flowEve', 'flowBob', 'flowSift'];
+    const photon = $('flyingPhoton');
+
+    // Reset
     nodes.forEach(id => $(id).classList.remove('active'));
-    $('flowEve').className = 'flow-node eve' + (eveActive ? ' active' : ' inactive');
-    let delay = 0;
-    for (const id of nodes) {
-        setTimeout(() => $(id).classList.add('active'), delay);
-        delay += 300;
+    $('flowEve').classList.toggle('inactive', !eveActive);
+    photon.style.left = '10%';
+    photon.style.opacity = '0';
+
+    // 1. Alice Spawns
+    $(nodes[0]).classList.add('active');
+    await new Promise(r => setTimeout(r, 600));
+
+    // 2. Travel to Eve/Bob
+    photon.style.opacity = '1';
+    if (eveActive) {
+        // Alice -> Eve
+        photon.style.left = '36%';
+        await new Promise(r => setTimeout(r, 800));
+        $(nodes[1]).classList.add('active');
+        await new Promise(r => setTimeout(r, 600));
+
+        // Eve -> Bob
+        photon.style.left = '62%';
+        await new Promise(r => setTimeout(r, 800));
+    } else {
+        // Alice -> Bob (Direct)
+        photon.style.left = '62%';
+        await new Promise(r => setTimeout(r, 1200));
     }
+
+    // 3. Bob Measures
+    $(nodes[2]).classList.add('active');
+    photon.style.opacity = '0';
+    await new Promise(r => setTimeout(r, 600));
+
+    // 4. Sifting
+    $(nodes[3]).classList.add('active');
+    await new Promise(r => setTimeout(r, 400));
 }
 
 // ── QBER Gauge ────────────────────────────────────────────────────────────
@@ -313,11 +344,31 @@ function updateGauge(qber) {
 }
 
 // ── Stats / Photon Table / Key Display ────────────────────────────────────
+function updateStatAnimate(id, targetValue, suffix = '', duration = 1000) {
+    const el = $(id);
+    if (!el) return;
+    const startValue = parseFloat(el.innerText) || 0;
+    const startTime = performance.now();
+
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOutQuad = t => t * (2 - t);
+        const current = startValue + (targetValue - startValue) * easeOutQuad(progress);
+
+        if (suffix === '%') el.innerText = current.toFixed(2) + suffix;
+        else el.innerText = Math.floor(current) + suffix;
+
+        if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+}
+
 function updateStats(result) {
-    $('statPhotons').textContent = result.alice.bits.length;
-    $('statSifted').textContent = result.siftedLen;
-    $('statErrors').textContent = result.sifted.errors;
-    $('statFinalKey').textContent = result.finalKeyLen;
+    updateStatAnimate('statPhotons', result.alice.bits.length);
+    updateStatAnimate('statSifted', result.siftedLen);
+    updateStatAnimate('statErrors', result.sifted.errors);
+    updateStatAnimate('statFinalKey', result.finalKeyLen);
 }
 
 function renderPhotonTable(result) {
@@ -326,10 +377,14 @@ function renderPhotonTable(result) {
     tbody.innerHTML = '';
 
     const n = result.alice.bits.length;
-    const maxRows = Math.min(n, 200);
+    const maxRows = Math.min(n, 50); // Reduced for smoother performance
 
     for (let i = 0; i < maxRows; i++) {
         const tr = document.createElement('tr');
+        tr.style.opacity = '0';
+        tr.style.transform = 'translateY(10px)';
+        tr.style.transition = 'all 0.4s ease';
+
         const basisMatch = result.alice.bases[i] === result.bob.bases[i];
         const bitMatch = result.alice.bits[i] === result.bob.bits[i];
 
@@ -347,19 +402,20 @@ function renderPhotonTable(result) {
             <td style="color:var(--text-dim)">${i + 1}</td>
             <td>${result.alice.bits[i]}</td>
             <td>${BASIS_SYM[result.alice.bases[i]]}</td>
-            <td>${POLARISATION[result.alice.bases[i]][result.alice.bits[i]]}</td>
+            <td><span class="photon-circle" style="color:${basisMatch ? (bitMatch ? 'var(--accent-green)' : 'var(--accent-red)') : 'var(--accent-blue)'}; width:18px; height:18px; font-size:0.7rem">${POLARISATION[result.alice.bases[i]][result.alice.bits[i]].split(' ')[0]}</span></td>
             ${eveCells}
             <td>${BASIS_SYM[result.bob.bases[i]]}</td>
             <td>${result.bob.bits[i]}</td>
             <td class="${matchClass}">${matchIcon}</td>
             <td class="${bitClass}">${bitIcon}</td>`;
+
         tbody.appendChild(tr);
-    }
-    if (n > maxRows) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="11" style="color:var(--text-dim);text-align:center">
-            … and ${n - maxRows} more photons</td>`;
-        tbody.appendChild(tr);
+
+        // Staggered fade in
+        setTimeout(() => {
+            tr.style.opacity = '1';
+            tr.style.transform = 'translateY(0)';
+        }, i * 30);
     }
 }
 
@@ -374,11 +430,12 @@ function renderKey(bits, containerId) {
 }
 
 // ── Run Single Simulation ──────────────────────────────────────────────────
-function runSingle() {
+async function runSingle() {
     const n = parseInt($('nQubits').value);
     const eveActive = $('eveToggle').classList.contains('active');
 
-    animateFlow(eveActive);
+    await animateSimulation(eveActive);
+
     const result = runBB84(n, eveActive);
     lastResult = result;
 
@@ -407,12 +464,12 @@ function runSingle() {
 // ENCRYPT MODE — Single scenario with OTP
 // ═══════════════════════════════════════════════════════════════════════════
 
-function runEncrypt() {
+async function runEncrypt() {
     const n = parseInt($('nQubits').value);
     const eveActive = $('eveToggle').classList.contains('active');
     const plaintext = $('msgInput').value || 'Hello Bob';
 
-    animateFlow(eveActive);
+    await animateSimulation(eveActive);
     const result = runBB84(n, eveActive);
     lastResult = result;
 

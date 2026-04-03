@@ -29,14 +29,29 @@
         <!-- ══════════ PROTOCOL FLOW ══════════ -->
         <div class="card" style="margin-bottom:20px">
             <div class="card-title"><span class="icon">⚛️</span> Protocol Flow</div>
-            <div class="protocol-flow">
-                <div id="flowAlice" class="flow-node alice">🔵 Alice<br><small>Prepare Photons</small></div>
-                <span class="flow-arrow">→</span>
-                <div id="flowEve" class="flow-node eve inactive">🔴 Eve<br><small>Eavesdrop?</small></div>
-                <span class="flow-arrow">→</span>
-                <div id="flowBob" class="flow-node bob">🟢 Bob<br><small>Measure</small></div>
-                <span class="flow-arrow">→</span>
-                <div id="flowSift" class="flow-node sift">🟣 Sift<br><small>Compare Bases</small></div>
+            <div class="flow-container">
+                <div class="fiber-line"></div>
+                <div id="flyingPhoton" class="flying-photon"></div>
+
+                <div id="flowAlice" class="flow-node">
+                    <span class="icon">👩‍💻</span>
+                    <div class="flow-label">Alice</div>
+                </div>
+
+                <div id="flowEve" class="flow-node eve inactive">
+                    <span class="icon">🕵️‍♀️</span>
+                    <div class="flow-label">Eve</div>
+                </div>
+
+                <div id="flowBob" class="flow-node">
+                    <span class="icon">👨‍💻</span>
+                    <div class="flow-label">Bob</div>
+                </div>
+
+                <div id="flowSift" class="flow-node">
+                    <span class="icon">🔑</span>
+                    <div class="flow-label">Sifting</div>
+                </div>
             </div>
         </div>
 
